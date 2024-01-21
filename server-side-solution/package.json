@@ -1,0 +1,18 @@
+{
+  "name": "audio-recorder",
+  "version": "1.0.0",
+  "description": "Audio recorder and player implemented in server side.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node server.js"
+  },
+  "author": "Azman",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "node-record-lpcm16": "^1.0.1",
+    "node-web-audio-api": "^0.15.0",
+    "socket.io": "^4.7.4"
+  }
+}
