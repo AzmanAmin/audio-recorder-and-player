@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Recorder and Player</title>
+    <script src="https://www.WebRTC-Experiment.com/RecordRTC.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+    <div style="margin: 20px">
+        <h1 style="font-size: 18px;">Audio Recorder and Player</h1>
+        <div>
+            <button id="recording-btn-id" style="background-color: #929fb4;" onmousedown="startRecording()"
+                onmouseup="stopRecording()">Record</button>
+            <button id="play-btn-id" onclick="handlePlayAudio()">Play Audio</button>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        const recordingButton = document.getElementById('recording-btn-id');
+        let recordAudio;
+
+        const socketIO = io.connect("http://localhost:3001");
+
+        socketIO.on('connected', (data) => {
+            console.log(data.message);
+        });
+
+        socketIO.on('audioSaved', (arrBuffer) => {
+            playAudio(arrBuffer);
+        });
+
+        socketIO.on("playAudio", (audioBuffer) => {
+            playAudio(audioBuffer);
+        });
+
+        const startRecording = () => {
+            // change button background color
+            recordingButton.style.backgroundColor = "#38598f";
+
+
+            // make use of WebRTC JavaScript method getUserMedia()
+            // to capture the browser microphone stream
+            navigator.getUserMedia({
+                audio: true
+            }, function (stream) {
+
+
+                recordAudio = RecordRTC(stream, {
+                    type: 'audio',
+                    mimeType: 'audio/wav',
+                    sampleRate: 44100,
+                    // used by StereoAudioRecorder
+                    // the range 22050 to 96000.
+                    // let us force 16khz recording:
+                    desiredSampRate: 16000,
+                    // this should match with Syour server code
+
+                    // MediaStreamRecorder, StereoAudioRecorder, WebAssemblyRecorder
+                    // CanvasRecorder, GifRecorder, WhammyRecorder
+                    recorderType: StereoAudioRecorder,
+                    // Dialogflow / STT requires mono audio
+                    numberOfAudioChannels: 1,
+
+                });
+
+                // start audio recorder
+                recordAudio.startRecording();
+            }, function (error) {
+                console.error(JSON.stringify(error));
+            });
+        };
+
+
+        const stopRecording = () => {
+            // change button background color
+            recordingButton.style.backgroundColor = "#929fb4";
+
+            // stop audio recorder
+            recordAudio.stopRecording(function () {
+                // after stopping the audio, get the audio data
+                recordAudio.getDataURL(function (audioDataURL) {
+                    const files = {
+                        audio: {
+                            type: recordAudio.getBlob().type || 'audio/wav',
+                            dataURL: audioDataURL
+                        }
+                    };
+                    // submit the audio file to the server
+                    socketIO.emit('audioData', files);
+                });
+            });
+        };
+
+        const handlePlayAudio = () => {
+            socketIO.emit("playAudio");
+        }
+
+        const playAudio = (arrBuffer) => {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const bufferSource = audioContext.createBufferSource();
+            audioContext.decodeAudioData(arrBuffer, (buffer) => {
+                bufferSource.buffer = buffer;
+                bufferSource.connect(audioContext.destination);
+                bufferSource.start();
+            });
+        }
+    </script>
+</body>
+
+</html>
+
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Recorder and Player</title>
+</head>
+
+<body>
+    <h1>Audio Recorder and Player</h1>
+    <button id="start-recording-btn-id" onclick="startRecording()">Start Recording</button>
+    <button id="stop-recording-btn-id" onclick="stopRecording()" style="display: none;">Stop Recording</button>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+        const startRecordingButton = document.getElementById('start-recording-btn-id');
+        const stopRecordingButton = document.getElementById('stop-recording-btn-id');
+
+        const socketIO = io.connect("http://localhost:3001");
+        let mediaRecorder;
+        let audioChunks = [];
+
+        socketIO.on('connected', (data) => {
+            console.log(data.message);
+        });
+
+        socketIO.on('audioSaved', (data) => {
+            console.log(data.message);
+            handlePlayAudio(data.blob);
+        });
+
+        const startRecording = async () => {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                console.log("User media supported.");
+
+                // show/hide button
+                startRecordingButton.style.display = "none";
+                stopRecordingButton.style.display = "block";
+
+                // get audio stream from the microphone
+                const audioStream = await navigator.mediaDevices.getUserMedia({
+                    audio: true
+                });
+
+                // initialize and start the media recorder
+                mediaRecorder = new MediaRecorder(audioStream);
+
+                mediaRecorder.ondataavailable = handleDataAvailable;
+                mediaRecorder.start();
+
+                console.log("stateStartRecording: ", mediaRecorder.state);
+            } else {
+                console.log("getUserMedia not supported on your browser!");
+            }
+        }
+
+        const stopRecording = () => {
+            // show/hide button
+            startRecordingButton.style.display = "block";
+            stopRecordingButton.style.display = "none";
+
+            mediaRecorder.stop();
+            mediaRecorder.onstop = handleOnStop;
+        }
+
+        const handleDataAvailable = (event) => {
+            if (event.data.size > 0) audioChunks.push(event.data);
+        }
+
+        const handleOnStop = () => {
+            socketIO.emit("audioData", audioChunks);
+        }
+
+        const handlePlayAudio = async (arrBuffer) => {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const bufferSource = audioContext.createBufferSource();
+            audioContext.decodeAudioData(arrBuffer, (buffer) => {
+                bufferSource.buffer = buffer;
+                bufferSource.connect(audioContext.destination);
+                bufferSource.start();
+            });
+        }
+    </script>
+</body>
+
+</html> -->

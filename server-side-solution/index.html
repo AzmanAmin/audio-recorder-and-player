@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Recorder and Player</title>
+</head>
+
+<body>
+    <h1>Audio Recorder and Player</h1>
+    <button id="recording-btn-id" style="background-color: #929fb4;" onmousedown="startRecording()"
+        onmouseup="stopRecording()">Record</button>
+    <button id="play-btn-id" onclick="handlePlayAudio()">Play Audio</button>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+        const recordingButton = document.getElementById('recording-btn-id');
+
+        const socketIO = io.connect("http://localhost:3009");
+
+        socketIO.on('connected', (data) => {
+            console.log(data.message);
+        });
+
+        const startRecording = () => {
+            // change button background color
+            recordingButton.style.backgroundColor = "#38598f";
+
+            // emit a message stream to the server to start recording
+            socketIO.emit('startRecording');
+        }
+
+        const stopRecording = () => {
+            // change button background color
+            recordingButton.style.backgroundColor = "#929fb4";
+
+            // emit a message stream to the server to stop recording
+            socketIO.emit("stopRecording");
+        }
+
+        const handlePlayAudio = () => {
+            socketIO.emit("playAudio");
+        }
+    </script>
+</body>
+
+</html>
