@@ -24,6 +24,10 @@
             console.log(data.message);
         });
 
+        socketIO.on("audioNotFound", (message) => {
+            alert(message);
+        });
+
         const startRecording = () => {
             // change button background color
             recordingButton.style.backgroundColor = "#38598f";

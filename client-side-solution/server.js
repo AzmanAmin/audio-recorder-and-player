@@ -1,5 +1,5 @@
 const express = require("express");
-const { writeFileSync, readFileSync } = require("fs");
+const { writeFileSync, readFileSync, existsSync } = require("fs");
 const { join } = require("path");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
@@ -35,8 +35,12 @@ ioServer.on("connection", (socket) => {
 
   socket.on("playAudio", () => {
     const filePath = join(__dirname, "audioFiles", "recorded_audio.wav");
-    const audioBuffer = readFileSync(filePath).buffer;
+    if (!existsSync(filePath)) {
+      socket.emit("audioNotFound", "Audio file not found!");
+      return;
+    }
 
+    const audioBuffer = readFileSync(filePath).buffer;
     socket.emit("playAudio", audioBuffer);
   });
 

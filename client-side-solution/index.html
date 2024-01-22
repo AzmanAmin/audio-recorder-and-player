@@ -37,10 +37,13 @@
             playAudio(audioBuffer);
         });
 
+        socketIO.on("audioNotFound", (message) => {
+            alert(message);
+        });
+
         const startRecording = () => {
             // change button background color
             recordingButton.style.backgroundColor = "#38598f";
-
 
             // make use of WebRTC JavaScript method getUserMedia()
             // to capture the browser microphone stream
@@ -48,23 +51,12 @@
                 audio: true
             }, function (stream) {
 
-
                 recordAudio = RecordRTC(stream, {
                     type: 'audio',
                     mimeType: 'audio/wav',
-                    sampleRate: 44100,
-                    // used by StereoAudioRecorder
-                    // the range 22050 to 96000.
-                    // let us force 16khz recording:
-                    desiredSampRate: 16000,
-                    // this should match with Syour server code
-
                     // MediaStreamRecorder, StereoAudioRecorder, WebAssemblyRecorder
                     // CanvasRecorder, GifRecorder, WhammyRecorder
                     recorderType: StereoAudioRecorder,
-                    // Dialogflow / STT requires mono audio
-                    numberOfAudioChannels: 1,
-
                 });
 
                 // start audio recorder
@@ -73,7 +65,6 @@
                 console.error(JSON.stringify(error));
             });
         };
-
 
         const stopRecording = () => {
             // change button background color
@@ -101,8 +92,8 @@
 
         const playAudio = (arrBuffer) => {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const bufferSource = audioContext.createBufferSource();
             audioContext.decodeAudioData(arrBuffer, (buffer) => {
+                const bufferSource = audioContext.createBufferSource();
                 bufferSource.buffer = buffer;
                 bufferSource.connect(audioContext.destination);
                 bufferSource.start();

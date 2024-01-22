@@ -1,5 +1,5 @@
 const express = require("express");
-const { readFileSync, createWriteStream } = require("fs");
+const { readFileSync, createWriteStream, existsSync } = require("fs");
 const path = require("path");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
@@ -48,12 +48,20 @@ ioServer.on("connection", (socket) => {
   });
 
   socket.on("stopRecording", async () => {
+    const filePath = path.join(__dirname, "audiofiles", "recorded_audio.wav");
+
     recording.stop();
-    await playAudio();
+    await playAudio(filePath);
   });
 
-  socket.on("playAudio", () => {
-    playAudio();
+  socket.on("playAudio", async () => {
+    const filePath = path.join(__dirname, "audiofiles", "recorded_audio.wav");
+    if (!existsSync(filePath)) {
+      socket.emit("audioNotFound", "Audio file not found!");
+      return;
+    }
+
+    await playAudio(filePath);
   });
 
   const audioFileToStore = () => {
@@ -61,8 +69,8 @@ ioServer.on("connection", (socket) => {
     return createWriteStream(filePath, { encoding: "binary" });
   };
 
-  const playAudio = async () => {
-    const filePath = path.join(__dirname, "audiofiles", "recorded_audio.wav");
+  const playAudio = async (filePath) => {
+    // const filePath = path.join(__dirname, "audiofiles", "recorded_audio.wav");
     try {
       const audioContext = new AudioContext();
 
