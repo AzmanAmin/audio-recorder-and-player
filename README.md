@@ -1,4 +1,4 @@
-# Audi Recorder and Player
+# Audio Recorder and Player
 
 ## Setup and Run
 
@@ -25,4 +25,5 @@ Visit `http://localhost:3001` for client-side-solution, and/or visit `http://loc
 3. Release the button. It will save the record in the file system (under /audioFiles directory) and play the audio.
 4. Click `Play Audio` button if you want to listen to the latest recorded audio.
 
-> [!NOTE] > [Sox](https://sourceforge.net/projects/sox/) must be installed in your system for the `server-side-solution` to work properly.
+> [!NOTE] 
+> [Sox](https://sourceforge.net/projects/sox/) must be installed in your system for the `server-side-solution` to work properly.
